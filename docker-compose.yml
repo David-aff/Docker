@@ -1,0 +1,42 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: stock_db
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - v_salazar:/var/lib/postgresql/data
+    networks:
+      - n_salazar
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    container_name: stock_web
+    restart: always
+    ports:
+      - "7042:5000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - n_salazar
+
+volumes:
+  v_salazar:
+    external: true
+    name: v_salazar
+
+networks:
+  n_salazar:
+    external: true
+    name: n_salazar
+
